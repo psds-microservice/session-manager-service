@@ -11,6 +11,7 @@ type Config struct {
 	AppEnv   string
 	AppHost  string
 	HTTPPort string
+	GRPCPort string
 	LogLevel string
 
 	DB struct {
@@ -28,6 +29,7 @@ func Load() (*Config, error) {
 		AppEnv:   getEnv("APP_ENV", "development"),
 		AppHost:  getEnv("APP_HOST", "0.0.0.0"),
 		HTTPPort: firstEnv("APP_PORT", "HTTP_PORT", "8091"),
+		GRPCPort: firstEnv("GRPC_PORT", "METRICS_PORT", "9091"),
 		LogLevel: getEnv("LOG_LEVEL", "info"),
 	}
 	cfg.DB.Host = getEnv("DB_HOST", "localhost")

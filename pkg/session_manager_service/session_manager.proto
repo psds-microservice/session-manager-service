@@ -1,0 +1,27 @@
+syntax = "proto3";
+package session_manager_service;
+option go_package = "github.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service;session_manager_service";
+import "google/api/annotations.proto";
+
+service SessionManagerService {
+  rpc GetSession (GetSessionRequest) returns (SessionResponse) {
+    option (google.api.http) = { get: "/session/{id}" }; }
+  rpc GetParticipants (GetParticipantsRequest) returns (ParticipantsResponse) {
+    option (google.api.http) = { get: "/session/{id}/participants" }; }
+  rpc JoinSession (JoinSessionRequest) returns (SessionResponse) {
+    option (google.api.http) = { post: "/session/join"; body: "*" }; }
+  rpc Invite (InviteRequest) returns (InviteResponse) {
+    option (google.api.http) = { post: "/session/{id}/invite"; body: "*" }; }
+  rpc Control (ControlRequest) returns (ControlResponse) {
+    option (google.api.http) = { post: "/session/{id}/control"; body: "*" }; }
+}
+
+message GetSessionRequest { string id = 1; }
+message GetParticipantsRequest { string id = 1; }
+message JoinSessionRequest { string session_id = 1; string pin = 2; string user_id = 3; }
+message InviteRequest { string id = 1; string operator_id = 2; }
+message ControlRequest { string id = 1; string action = 2; }
+message SessionResponse { string id = 1; string status = 2; }
+message ParticipantsResponse { repeated string participant_ids = 1; }
+message InviteResponse { bool ok = 1; }
+message ControlResponse { bool ok = 1; }

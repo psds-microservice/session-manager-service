@@ -1,0 +1,286 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "session_manager.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "SessionManagerService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/session/join": {
+      "post": {
+        "operationId": "SessionManagerService_JoinSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceJoinSessionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
+    "/session/{id}": {
+      "get": {
+        "operationId": "SessionManagerService_GetSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
+    "/session/{id}/control": {
+      "post": {
+        "operationId": "SessionManagerService_Control",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceControlResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SessionManagerServiceControlBody"
+            }
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
+    "/session/{id}/invite": {
+      "post": {
+        "operationId": "SessionManagerService_Invite",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceInviteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SessionManagerServiceInviteBody"
+            }
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
+    "/session/{id}/participants": {
+      "get": {
+        "operationId": "SessionManagerService_GetParticipants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceParticipantsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "SessionManagerServiceControlBody": {
+      "type": "object",
+      "properties": {
+        "action": {
+          "type": "string"
+        }
+      }
+    },
+    "SessionManagerServiceInviteBody": {
+      "type": "object",
+      "properties": {
+        "operatorId": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "session_manager_serviceControlResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
+    },
+    "session_manager_serviceInviteResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
+    },
+    "session_manager_serviceJoinSessionRequest": {
+      "type": "object",
+      "properties": {
+        "sessionId": {
+          "type": "string"
+        },
+        "pin": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "session_manager_serviceParticipantsResponse": {
+      "type": "object",
+      "properties": {
+        "participantIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "session_manager_serviceSessionResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

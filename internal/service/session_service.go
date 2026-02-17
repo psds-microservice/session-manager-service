@@ -11,6 +11,16 @@ import (
 	"gorm.io/gorm"
 )
 
+// SessionServicer — интерфейс для gRPC Deps (Dependency Inversion).
+type SessionServicer interface {
+	GetByID(id uuid.UUID) (*model.ConsultationSession, error)
+	GetParticipants(sessionID uuid.UUID) ([]model.SessionParticipant, error)
+	JoinByPIN(pin string, operatorID uuid.UUID) (*model.ConsultationSession, error)
+	JoinBySessionID(sessionID, operatorID uuid.UUID) (*model.ConsultationSession, error)
+	Invite(sessionID, operatorID uuid.UUID) error
+	Control(sessionID uuid.UUID, leadOperatorID *uuid.UUID, status string) error
+}
+
 const pinDigits = "0123456789"
 const pinLength = 6
 

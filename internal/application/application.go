@@ -17,6 +17,8 @@ import (
 	"github.com/psds-microservice/session-manager-service/internal/database"
 	grpcserver "github.com/psds-microservice/session-manager-service/internal/grpc"
 	"github.com/psds-microservice/session-manager-service/internal/handler"
+	"github.com/psds-microservice/session-manager-service/internal/kafka"
+	"github.com/psds-microservice/session-manager-service/internal/searchindex"
 	"github.com/psds-microservice/session-manager-service/internal/service"
 	"github.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -73,6 +75,8 @@ func NewAPI(cfg *config.Config) (*API, error) {
 	}
 
 	sessionSvc := service.NewSessionService(conn)
+	searchClient := searchindex.NewClient(cfg.SearchServiceURL)
+	kafkaProducer := kafka.NewProducer(cfg.KafkaBrokers, cfg.KafkaTopicSession)
 
 	grpcAddr := cfg.AppHost + ":" + cfg.GRPCPort
 	lis, err := net.Listen("tcp", grpcAddr)
@@ -81,7 +85,9 @@ func NewAPI(cfg *config.Config) (*API, error) {
 	}
 	grpcSrv := grpc.NewServer()
 	grpcImpl := grpcserver.NewServer(grpcserver.Deps{
-		Session: sessionSvc,
+		Session:  sessionSvc,
+		Indexer:  searchClient,
+		Producer: kafkaProducer,
 	})
 	session_manager_service.RegisterSessionManagerServiceServer(grpcSrv, grpcImpl)
 	reflection.Register(grpcSrv)

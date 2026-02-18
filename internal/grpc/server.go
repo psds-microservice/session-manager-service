@@ -7,7 +7,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/psds-microservice/session-manager-service/internal/errs"
+	"github.com/psds-microservice/session-manager-service/internal/kafka"
 	"github.com/psds-microservice/session-manager-service/internal/model"
+	"github.com/psds-microservice/session-manager-service/internal/searchindex"
 	"github.com/psds-microservice/session-manager-service/internal/service"
 	"github.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service"
 	"google.golang.org/grpc/codes"
@@ -16,7 +18,9 @@ import (
 
 // Deps — зависимости gRPC-сервера (D: зависимость от абстракций).
 type Deps struct {
-	Session service.SessionServicer
+	Session  service.SessionServicer
+	Indexer  searchindex.SessionIndexer // опционально: индексация сессий в search-service
+	Producer kafka.SessionEventProducer // опционально: события сессий в Kafka
 }
 
 // Server implements session_manager_service.SessionManagerServiceServer
@@ -63,6 +67,9 @@ func (s *Server) GetSession(ctx context.Context, req *session_manager_service.Ge
 	if err != nil {
 		return nil, s.mapError(err)
 	}
+	if s.Indexer != nil {
+		s.Indexer.IndexSessionAsync(ses)
+	}
 	return toProtoSession(ses), nil
 }
 
@@ -104,6 +111,12 @@ func (s *Server) JoinSession(ctx context.Context, req *session_manager_service.J
 	if err != nil {
 		return nil, s.mapError(err)
 	}
+	if s.Indexer != nil {
+		s.Indexer.IndexSessionAsync(ses)
+	}
+	if s.Producer != nil {
+		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", ses.ID, map[string]interface{}{"user_id": userID.String()})
+	}
 	return toProtoSession(ses), nil
 }
 
@@ -119,6 +132,14 @@ func (s *Server) Invite(ctx context.Context, req *session_manager_service.Invite
 	if err := s.Session.Invite(sessionID, operatorID); err != nil {
 		return nil, s.mapError(err)
 	}
+	if s.Indexer != nil {
+		if ses, _ := s.Session.GetByID(sessionID); ses != nil {
+			s.Indexer.IndexSessionAsync(ses)
+		}
+	}
+	if s.Producer != nil {
+		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", sessionID, map[string]interface{}{"operator_id": operatorID.String()})
+	}
 	return &session_manager_service.InviteResponse{Ok: true}, nil
 }
 
@@ -133,6 +154,14 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 	statusStr := req.GetAction()
 	if err := s.Session.Control(sessionID, leadOperatorID, statusStr); err != nil {
 		return nil, s.mapError(err)
+	}
+	if s.Indexer != nil {
+		if ses, _ := s.Session.GetByID(sessionID); ses != nil {
+			s.Indexer.IndexSessionAsync(ses)
+		}
+	}
+	if s.Producer != nil && statusStr == "finished" {
+		go s.Producer.ProduceSessionEvent(context.Background(), "session.ended", sessionID, nil)
 	}
 	return &session_manager_service.ControlResponse{Ok: true}, nil
 }

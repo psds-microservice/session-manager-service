@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"strings"
 )
 
 type Config struct {
@@ -13,6 +14,10 @@ type Config struct {
 	HTTPPort string
 	GRPCPort string
 	LogLevel string
+
+	SearchServiceURL  string   // опционально: URL search-service для индексации сессий (например http://localhost:8096)
+	KafkaBrokers      []string // опционально: брокеры Kafka для событий сессий (например localhost:9092)
+	KafkaTopicSession string   // топик для событий сессий (по умолчанию psds.session.events)
 
 	DB struct {
 		Host     string
@@ -26,11 +31,20 @@ type Config struct {
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		AppEnv:   getEnv("APP_ENV", "development"),
-		AppHost:  getEnv("APP_HOST", "0.0.0.0"),
-		HTTPPort: firstEnv("APP_PORT", "HTTP_PORT", "8091"),
-		GRPCPort: firstEnv("GRPC_PORT", "METRICS_PORT", "9091"),
-		LogLevel: getEnv("LOG_LEVEL", "info"),
+		AppEnv:            getEnv("APP_ENV", "development"),
+		AppHost:           getEnv("APP_HOST", "0.0.0.0"),
+		HTTPPort:          firstEnv("APP_PORT", "HTTP_PORT", "8091"),
+		GRPCPort:          firstEnv("GRPC_PORT", "METRICS_PORT", "9091"),
+		LogLevel:          getEnv("LOG_LEVEL", "info"),
+		SearchServiceURL:  getEnv("SEARCH_SERVICE_URL", ""),
+		KafkaTopicSession: getEnv("KAFKA_TOPIC_SESSION", "psds.session.events"),
+	}
+	if brokers := getEnv("KAFKA_BROKERS", ""); brokers != "" {
+		for _, s := range strings.Split(brokers, ",") {
+			if t := strings.TrimSpace(s); t != "" {
+				cfg.KafkaBrokers = append(cfg.KafkaBrokers, t)
+			}
+		}
 	}
 	cfg.DB.Host = getEnv("DB_HOST", "localhost")
 	cfg.DB.Port = getEnv("DB_PORT", "5432")

@@ -18,4 +18,5 @@ func init() {
 	rootCmd.AddCommand(apiCmd)
 	rootCmd.AddCommand(migrateCmd)
 	rootCmd.AddCommand(seedCmd)
+	rootCmd.AddCommand(reindexSearchCmd)
 }

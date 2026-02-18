@@ -1,4 +1,4 @@
-.PHONY: help build run run-dev migrate seed db-init clean tidy vet fmt health-check proto proto-build proto-generate proto-generate-local proto-generate-docker proto-openapi install-deps update docker-build docker-compose-up docker-compose-down
+.PHONY: help build run run-dev migrate seed db-init reindex-search clean tidy vet fmt health-check proto proto-build proto-generate proto-generate-local proto-generate-docker proto-openapi install-deps update docker-build docker-compose-up docker-compose-down
 
 APP_NAME = session-manager-service
 CMD_PATH = ./cmd/session-manager-service
@@ -14,7 +14,7 @@ OPENAPI_OUT = api
 
 help:
 	@echo "session-manager-service"
-	@echo "  make build run run-dev migrate seed db-init clean tidy vet fmt health-check docker-build docker-compose-up"
+	@echo "  make build run run-dev migrate seed db-init reindex-search clean tidy vet fmt health-check docker-build docker-compose-up"
 	@echo "  make proto / proto-generate / proto-openapi  - as in user-service"
 	@echo "  make install-deps / update"
 	@echo "  Port: $(PORT)  Health: http://localhost:$(PORT)/health  Swagger: http://localhost:$(PORT)/swagger"
@@ -35,6 +35,9 @@ migrate: build
 
 seed: build
 	@cd $(BIN_DIR) && ./$(APP_NAME) seed
+
+reindex-search: build
+	@cd $(BIN_DIR) && ./$(APP_NAME) reindex-search
 
 db-init: migrate seed
 

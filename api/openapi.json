@@ -16,6 +16,38 @@
     "application/json"
   ],
   "paths": {
+    "/session": {
+      "post": {
+        "operationId": "SessionManagerService_CreateSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceCreateSessionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
     "/session/join": {
       "post": {
         "operationId": "SessionManagerService_JoinSession",
@@ -238,6 +270,19 @@
         }
       }
     },
+    "session_manager_serviceCreateSessionRequest": {
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "title": "обязательно: ID клиента"
+        },
+        "streamSessionId": {
+          "type": "string",
+          "title": "опционально: ID streaming сессии"
+        }
+      }
+    },
     "session_manager_serviceInviteResponse": {
       "type": "object",
       "properties": {
@@ -278,6 +323,9 @@
           "type": "string"
         },
         "status": {
+          "type": "string"
+        },
+        "pin": {
           "type": "string"
         }
       }

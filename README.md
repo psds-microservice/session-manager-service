@@ -12,11 +12,12 @@
 
 ## API (REST)
 
+- **POST /session** — создать сессию консультации (body: `client_id`, опционально `stream_session_id`). Возвращает `id`, `status`, `pin`.
 - **GET /session/:id** — метаданные сессии.
 - **GET /session/:id/participants** — список участников.
 - **POST /session/join** — оператор присоединяется по `session_id` или `pin` (body: `session_id` или `pin`, `user_id`).
 - **POST /session/:id/invite** — пригласить оператора (body: `operator_id`).
-- **POST /session/:id/control** — изменить параметры (body: `lead_operator_id`, `status`).
+- **POST /session/:id/control** — изменить параметры (body: `action`).
 
 ## Health
 

@@ -4,6 +4,8 @@ option go_package = "github.com/psds-microservice/session-manager-service/pkg/ge
 import "google/api/annotations.proto";
 
 service SessionManagerService {
+  rpc CreateSession (CreateSessionRequest) returns (SessionResponse) {
+    option (google.api.http) = { post: "/session"; body: "*" }; }
   rpc GetSession (GetSessionRequest) returns (SessionResponse) {
     option (google.api.http) = { get: "/session/{id}" }; }
   rpc GetParticipants (GetParticipantsRequest) returns (ParticipantsResponse) {
@@ -16,12 +18,16 @@ service SessionManagerService {
     option (google.api.http) = { post: "/session/{id}/control"; body: "*" }; }
 }
 
+message CreateSessionRequest { 
+  string client_id = 1;           // обязательно: ID клиента
+  string stream_session_id = 2;   // опционально: ID streaming сессии
+}
 message GetSessionRequest { string id = 1; }
 message GetParticipantsRequest { string id = 1; }
 message JoinSessionRequest { string session_id = 1; string pin = 2; string user_id = 3; }
 message InviteRequest { string id = 1; string operator_id = 2; }
 message ControlRequest { string id = 1; string action = 2; }
-message SessionResponse { string id = 1; string status = 2; }
+message SessionResponse { string id = 1; string status = 2; string pin = 3; }
 message ParticipantsResponse { repeated string participant_ids = 1; }
 message InviteResponse { bool ok = 1; }
 message ControlResponse { bool ok = 1; }

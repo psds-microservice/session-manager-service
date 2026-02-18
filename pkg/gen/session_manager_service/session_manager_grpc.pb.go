@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
+	SessionManagerService_CreateSession_FullMethodName   = "/session_manager_service.SessionManagerService/CreateSession"
 	SessionManagerService_GetSession_FullMethodName      = "/session_manager_service.SessionManagerService/GetSession"
 	SessionManagerService_GetParticipants_FullMethodName = "/session_manager_service.SessionManagerService/GetParticipants"
 	SessionManagerService_JoinSession_FullMethodName     = "/session_manager_service.SessionManagerService/JoinSession"
@@ -30,6 +31,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SessionManagerServiceClient interface {
+	CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	GetParticipants(ctx context.Context, in *GetParticipantsRequest, opts ...grpc.CallOption) (*ParticipantsResponse, error)
 	JoinSession(ctx context.Context, in *JoinSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
@@ -43,6 +45,16 @@ type sessionManagerServiceClient struct {
 
 func NewSessionManagerServiceClient(cc grpc.ClientConnInterface) SessionManagerServiceClient {
 	return &sessionManagerServiceClient{cc}
+}
+
+func (c *sessionManagerServiceClient) CreateSession(ctx context.Context, in *CreateSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SessionResponse)
+	err := c.cc.Invoke(ctx, SessionManagerService_CreateSession_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *sessionManagerServiceClient) GetSession(ctx context.Context, in *GetSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error) {
@@ -99,6 +111,7 @@ func (c *sessionManagerServiceClient) Control(ctx context.Context, in *ControlRe
 // All implementations must embed UnimplementedSessionManagerServiceServer
 // for forward compatibility.
 type SessionManagerServiceServer interface {
+	CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error)
 	GetSession(context.Context, *GetSessionRequest) (*SessionResponse, error)
 	GetParticipants(context.Context, *GetParticipantsRequest) (*ParticipantsResponse, error)
 	JoinSession(context.Context, *JoinSessionRequest) (*SessionResponse, error)
@@ -114,6 +127,9 @@ type SessionManagerServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSessionManagerServiceServer struct{}
 
+func (UnimplementedSessionManagerServiceServer) CreateSession(context.Context, *CreateSessionRequest) (*SessionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateSession not implemented")
+}
 func (UnimplementedSessionManagerServiceServer) GetSession(context.Context, *GetSessionRequest) (*SessionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSession not implemented")
 }
@@ -148,6 +164,24 @@ func RegisterSessionManagerServiceServer(s grpc.ServiceRegistrar, srv SessionMan
 		t.testEmbeddedByValue()
 	}
 	s.RegisterService(&SessionManagerService_ServiceDesc, srv)
+}
+
+func _SessionManagerService_CreateSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateSessionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionManagerServiceServer).CreateSession(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionManagerService_CreateSession_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionManagerServiceServer).CreateSession(ctx, req.(*CreateSessionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _SessionManagerService_GetSession_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -247,6 +281,10 @@ var SessionManagerService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "session_manager_service.SessionManagerService",
 	HandlerType: (*SessionManagerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateSession",
+			Handler:    _SessionManagerService_CreateSession_Handler,
+		},
 		{
 			MethodName: "GetSession",
 			Handler:    _SessionManagerService_GetSession_Handler,

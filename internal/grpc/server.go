@@ -55,7 +55,36 @@ func toProtoSession(ses *model.ConsultationSession) *session_manager_service.Ses
 	return &session_manager_service.SessionResponse{
 		Id:     ses.ID.String(),
 		Status: ses.Status,
+		Pin:    ses.PIN,
 	}
+}
+
+func (s *Server) CreateSession(ctx context.Context, req *session_manager_service.CreateSessionRequest) (*session_manager_service.SessionResponse, error) {
+	clientID, err := uuid.Parse(req.GetClientId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid client_id")
+	}
+	var streamSessionID *uuid.UUID
+	if req.GetStreamSessionId() != "" {
+		parsed, err := uuid.Parse(req.GetStreamSessionId())
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, "invalid stream_session_id")
+		}
+		streamSessionID = &parsed
+	}
+	ses, err := s.Session.Create(clientID, streamSessionID)
+	if err != nil {
+		return nil, s.mapError(err)
+	}
+	// Отправляем событие в Kafka для индексации в search-service
+	if s.Producer != nil {
+		go s.Producer.ProduceSessionEvent(ctx, "session.created", ses.ID, map[string]interface{}{
+			"client_id": ses.ClientID.String(),
+			"pin":       ses.PIN,
+			"status":    ses.Status,
+		})
+	}
+	return toProtoSession(ses), nil
 }
 
 func (s *Server) GetSession(ctx context.Context, req *session_manager_service.GetSessionRequest) (*session_manager_service.SessionResponse, error) {
@@ -67,9 +96,7 @@ func (s *Server) GetSession(ctx context.Context, req *session_manager_service.Ge
 	if err != nil {
 		return nil, s.mapError(err)
 	}
-	if s.Indexer != nil {
-		s.Indexer.IndexSessionAsync(ses)
-	}
+	// Индексация теперь через Kafka consumer в search-service worker
 	return toProtoSession(ses), nil
 }
 
@@ -77,6 +104,11 @@ func (s *Server) GetParticipants(ctx context.Context, req *session_manager_servi
 	id, err := uuid.Parse(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid id")
+	}
+	// Проверяем существование сессии перед получением участников
+	_, err = s.Session.GetByID(id)
+	if err != nil {
+		return nil, s.mapError(err)
 	}
 	participants, err := s.Session.GetParticipants(id)
 	if err != nil {
@@ -92,6 +124,10 @@ func (s *Server) GetParticipants(ctx context.Context, req *session_manager_servi
 }
 
 func (s *Server) JoinSession(ctx context.Context, req *session_manager_service.JoinSessionRequest) (*session_manager_service.SessionResponse, error) {
+	// Сначала проверяем наличие обязательных полей
+	if req.GetPin() == "" && req.GetSessionId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "session_id or pin required")
+	}
 	userID, err := uuid.Parse(req.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
@@ -105,17 +141,18 @@ func (s *Server) JoinSession(ctx context.Context, req *session_manager_service.J
 			return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 		}
 		ses, err = s.Session.JoinBySessionID(sessionID, userID)
-	} else {
-		return nil, status.Error(codes.InvalidArgument, "session_id or pin required")
 	}
 	if err != nil {
 		return nil, s.mapError(err)
 	}
-	if s.Indexer != nil {
-		s.Indexer.IndexSessionAsync(ses)
-	}
+	// Индексация теперь через Kafka consumer в search-service worker
 	if s.Producer != nil {
-		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", ses.ID, map[string]interface{}{"user_id": userID.String()})
+		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", ses.ID, map[string]interface{}{
+			"user_id":   userID.String(),
+			"client_id": ses.ClientID.String(),
+			"pin":       ses.PIN,
+			"status":    ses.Status,
+		})
 	}
 	return toProtoSession(ses), nil
 }
@@ -132,13 +169,17 @@ func (s *Server) Invite(ctx context.Context, req *session_manager_service.Invite
 	if err := s.Session.Invite(sessionID, operatorID); err != nil {
 		return nil, s.mapError(err)
 	}
-	if s.Indexer != nil {
-		if ses, _ := s.Session.GetByID(sessionID); ses != nil {
-			s.Indexer.IndexSessionAsync(ses)
-		}
-	}
+	// Индексация теперь через Kafka consumer в search-service worker
 	if s.Producer != nil {
-		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", sessionID, map[string]interface{}{"operator_id": operatorID.String()})
+		// Получаем сессию для отправки полных данных
+		if ses, err := s.Session.GetByID(sessionID); err == nil && ses != nil {
+			go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", sessionID, map[string]interface{}{
+				"operator_id": operatorID.String(),
+				"client_id":   ses.ClientID.String(),
+				"pin":         ses.PIN,
+				"status":      ses.Status,
+			})
+		}
 	}
 	return &session_manager_service.InviteResponse{Ok: true}, nil
 }
@@ -150,18 +191,29 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 	}
 	// В proto ControlRequest имеет только id и action
 	// Используем action как status (active, finished)
-	var leadOperatorID *uuid.UUID
+	// Если action пустой и нет других полей, возвращаем ошибку валидации
 	statusStr := req.GetAction()
+	if statusStr == "" {
+		return nil, status.Error(codes.InvalidArgument, "action is required")
+	}
+	var leadOperatorID *uuid.UUID
 	if err := s.Session.Control(sessionID, leadOperatorID, statusStr); err != nil {
 		return nil, s.mapError(err)
 	}
-	if s.Indexer != nil {
-		if ses, _ := s.Session.GetByID(sessionID); ses != nil {
-			s.Indexer.IndexSessionAsync(ses)
+	// Индексация теперь через Kafka consumer в search-service worker
+	if s.Producer != nil {
+		// Получаем сессию для отправки полных данных
+		if ses, err := s.Session.GetByID(sessionID); err == nil && ses != nil {
+			eventType := "session.updated"
+			if statusStr == "finished" {
+				eventType = "session.ended"
+			}
+			go s.Producer.ProduceSessionEvent(context.Background(), eventType, sessionID, map[string]interface{}{
+				"client_id": ses.ClientID.String(),
+				"pin":       ses.PIN,
+				"status":    ses.Status, // Обновлённый статус
+			})
 		}
-	}
-	if s.Producer != nil && statusStr == "finished" {
-		go s.Producer.ProduceSessionEvent(context.Background(), "session.ended", sessionID, nil)
 	}
 	return &session_manager_service.ControlResponse{Ok: true}, nil
 }

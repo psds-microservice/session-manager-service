@@ -13,6 +13,7 @@ import (
 
 // SessionServicer — интерфейс для gRPC Deps (Dependency Inversion).
 type SessionServicer interface {
+	Create(clientID uuid.UUID, streamSessionID *uuid.UUID) (*model.ConsultationSession, error)
 	GetByID(id uuid.UUID) (*model.ConsultationSession, error)
 	GetParticipants(sessionID uuid.UUID) ([]model.SessionParticipant, error)
 	JoinByPIN(pin string, operatorID uuid.UUID) (*model.ConsultationSession, error)

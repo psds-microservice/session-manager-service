@@ -15,6 +15,7 @@ type ConsultationSession struct {
 	Status          string         `gorm:"type:varchar(20);not null;default:'waiting'" json:"status"` // waiting, active, finished
 	LeadOperatorID  *uuid.UUID     `gorm:"type:uuid" json:"lead_operator_id,omitempty"`
 	StreamSessionID *uuid.UUID     `gorm:"type:uuid" json:"stream_session_id,omitempty"` // связь с streaming-service
+	RecordingURL    string         `gorm:"type:text" json:"recording_url,omitempty"`     // ссылка на запись (от recording-service)
 	CreatedAt       time.Time      `json:"created_at"`
 	UpdatedAt       time.Time      `json:"updated_at"`
 	FinishedAt      *time.Time     `json:"finished_at,omitempty"`

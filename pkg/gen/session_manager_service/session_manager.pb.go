@@ -331,6 +331,7 @@ type SessionResponse struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Status        string                 `protobuf:"bytes,2,opt,name=status,proto3" json:"status,omitempty"`
 	Pin           string                 `protobuf:"bytes,3,opt,name=pin,proto3" json:"pin,omitempty"`
+	RecordingUrl  string                 `protobuf:"bytes,4,opt,name=recording_url,json=recordingUrl,proto3" json:"recording_url,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -386,6 +387,109 @@ func (x *SessionResponse) GetPin() string {
 	return ""
 }
 
+func (x *SessionResponse) GetRecordingUrl() string {
+	if x != nil {
+		return x.RecordingUrl
+	}
+	return ""
+}
+
+type SetRecordingUrlRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	StreamSessionId string                 `protobuf:"bytes,1,opt,name=stream_session_id,json=streamSessionId,proto3" json:"stream_session_id,omitempty"`
+	RecordingUrl    string                 `protobuf:"bytes,2,opt,name=recording_url,json=recordingUrl,proto3" json:"recording_url,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SetRecordingUrlRequest) Reset() {
+	*x = SetRecordingUrlRequest{}
+	mi := &file_session_manager_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetRecordingUrlRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetRecordingUrlRequest) ProtoMessage() {}
+
+func (x *SetRecordingUrlRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_session_manager_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetRecordingUrlRequest.ProtoReflect.Descriptor instead.
+func (*SetRecordingUrlRequest) Descriptor() ([]byte, []int) {
+	return file_session_manager_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SetRecordingUrlRequest) GetStreamSessionId() string {
+	if x != nil {
+		return x.StreamSessionId
+	}
+	return ""
+}
+
+func (x *SetRecordingUrlRequest) GetRecordingUrl() string {
+	if x != nil {
+		return x.RecordingUrl
+	}
+	return ""
+}
+
+type SetRecordingUrlResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Ok            bool                   `protobuf:"varint,1,opt,name=ok,proto3" json:"ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetRecordingUrlResponse) Reset() {
+	*x = SetRecordingUrlResponse{}
+	mi := &file_session_manager_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetRecordingUrlResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetRecordingUrlResponse) ProtoMessage() {}
+
+func (x *SetRecordingUrlResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_session_manager_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetRecordingUrlResponse.ProtoReflect.Descriptor instead.
+func (*SetRecordingUrlResponse) Descriptor() ([]byte, []int) {
+	return file_session_manager_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *SetRecordingUrlResponse) GetOk() bool {
+	if x != nil {
+		return x.Ok
+	}
+	return false
+}
+
 type ParticipantsResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	ParticipantIds []string               `protobuf:"bytes,1,rep,name=participant_ids,json=participantIds,proto3" json:"participant_ids,omitempty"`
@@ -395,7 +499,7 @@ type ParticipantsResponse struct {
 
 func (x *ParticipantsResponse) Reset() {
 	*x = ParticipantsResponse{}
-	mi := &file_session_manager_proto_msgTypes[7]
+	mi := &file_session_manager_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -407,7 +511,7 @@ func (x *ParticipantsResponse) String() string {
 func (*ParticipantsResponse) ProtoMessage() {}
 
 func (x *ParticipantsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_session_manager_proto_msgTypes[7]
+	mi := &file_session_manager_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -420,7 +524,7 @@ func (x *ParticipantsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ParticipantsResponse.ProtoReflect.Descriptor instead.
 func (*ParticipantsResponse) Descriptor() ([]byte, []int) {
-	return file_session_manager_proto_rawDescGZIP(), []int{7}
+	return file_session_manager_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ParticipantsResponse) GetParticipantIds() []string {
@@ -439,7 +543,7 @@ type InviteResponse struct {
 
 func (x *InviteResponse) Reset() {
 	*x = InviteResponse{}
-	mi := &file_session_manager_proto_msgTypes[8]
+	mi := &file_session_manager_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -451,7 +555,7 @@ func (x *InviteResponse) String() string {
 func (*InviteResponse) ProtoMessage() {}
 
 func (x *InviteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_session_manager_proto_msgTypes[8]
+	mi := &file_session_manager_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -464,7 +568,7 @@ func (x *InviteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InviteResponse.ProtoReflect.Descriptor instead.
 func (*InviteResponse) Descriptor() ([]byte, []int) {
-	return file_session_manager_proto_rawDescGZIP(), []int{8}
+	return file_session_manager_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *InviteResponse) GetOk() bool {
@@ -483,7 +587,7 @@ type ControlResponse struct {
 
 func (x *ControlResponse) Reset() {
 	*x = ControlResponse{}
-	mi := &file_session_manager_proto_msgTypes[9]
+	mi := &file_session_manager_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -495,7 +599,7 @@ func (x *ControlResponse) String() string {
 func (*ControlResponse) ProtoMessage() {}
 
 func (x *ControlResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_session_manager_proto_msgTypes[9]
+	mi := &file_session_manager_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -508,7 +612,7 @@ func (x *ControlResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ControlResponse.ProtoReflect.Descriptor instead.
 func (*ControlResponse) Descriptor() ([]byte, []int) {
-	return file_session_manager_proto_rawDescGZIP(), []int{9}
+	return file_session_manager_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *ControlResponse) GetOk() bool {
@@ -541,17 +645,23 @@ const file_session_manager_proto_rawDesc = "" +
 	"operatorId\"8\n" +
 	"\x0eControlRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
-	"\x06action\x18\x02 \x01(\tR\x06action\"K\n" +
+	"\x06action\x18\x02 \x01(\tR\x06action\"p\n" +
 	"\x0fSessionResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x16\n" +
 	"\x06status\x18\x02 \x01(\tR\x06status\x12\x10\n" +
-	"\x03pin\x18\x03 \x01(\tR\x03pin\"?\n" +
+	"\x03pin\x18\x03 \x01(\tR\x03pin\x12#\n" +
+	"\rrecording_url\x18\x04 \x01(\tR\frecordingUrl\"i\n" +
+	"\x16SetRecordingUrlRequest\x12*\n" +
+	"\x11stream_session_id\x18\x01 \x01(\tR\x0fstreamSessionId\x12#\n" +
+	"\rrecording_url\x18\x02 \x01(\tR\frecordingUrl\")\n" +
+	"\x17SetRecordingUrlResponse\x12\x0e\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok\"?\n" +
 	"\x14ParticipantsResponse\x12'\n" +
 	"\x0fparticipant_ids\x18\x01 \x03(\tR\x0eparticipantIds\" \n" +
 	"\x0eInviteResponse\x12\x0e\n" +
 	"\x02ok\x18\x01 \x01(\bR\x02ok\"!\n" +
 	"\x0fControlResponse\x12\x0e\n" +
-	"\x02ok\x18\x01 \x01(\bR\x02ok2\xa5\x06\n" +
+	"\x02ok\x18\x01 \x01(\bR\x02ok2\xbb\a\n" +
 	"\x15SessionManagerService\x12}\n" +
 	"\rCreateSession\x12-.session_manager_service.CreateSessionRequest\x1a(.session_manager_service.SessionResponse\"\x13\x82\xd3\xe4\x93\x02\r:\x01*\"\b/session\x12y\n" +
 	"\n" +
@@ -559,7 +669,8 @@ const file_session_manager_proto_rawDesc = "" +
 	"\x0fGetParticipants\x12/.session_manager_service.GetParticipantsRequest\x1a-.session_manager_service.ParticipantsResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/session/{id}/participants\x12~\n" +
 	"\vJoinSession\x12+.session_manager_service.JoinSessionRequest\x1a(.session_manager_service.SessionResponse\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/session/join\x12z\n" +
 	"\x06Invite\x12&.session_manager_service.InviteRequest\x1a'.session_manager_service.InviteResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/session/{id}/invite\x12~\n" +
-	"\aControl\x12'.session_manager_service.ControlRequest\x1a(.session_manager_service.ControlResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/session/{id}/controlBnZlgithub.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service;session_manager_serviceb\x06proto3"
+	"\aControl\x12'.session_manager_service.ControlRequest\x1a(.session_manager_service.ControlResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/session/{id}/control\x12\x93\x01\n" +
+	"\x0fSetRecordingUrl\x12/.session_manager_service.SetRecordingUrlRequest\x1a0.session_manager_service.SetRecordingUrlResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/session/recordingBnZlgithub.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service;session_manager_serviceb\x06proto3"
 
 var (
 	file_session_manager_proto_rawDescOnce sync.Once
@@ -573,37 +684,41 @@ func file_session_manager_proto_rawDescGZIP() []byte {
 	return file_session_manager_proto_rawDescData
 }
 
-var file_session_manager_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
+var file_session_manager_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_session_manager_proto_goTypes = []any{
-	(*CreateSessionRequest)(nil),   // 0: session_manager_service.CreateSessionRequest
-	(*GetSessionRequest)(nil),      // 1: session_manager_service.GetSessionRequest
-	(*GetParticipantsRequest)(nil), // 2: session_manager_service.GetParticipantsRequest
-	(*JoinSessionRequest)(nil),     // 3: session_manager_service.JoinSessionRequest
-	(*InviteRequest)(nil),          // 4: session_manager_service.InviteRequest
-	(*ControlRequest)(nil),         // 5: session_manager_service.ControlRequest
-	(*SessionResponse)(nil),        // 6: session_manager_service.SessionResponse
-	(*ParticipantsResponse)(nil),   // 7: session_manager_service.ParticipantsResponse
-	(*InviteResponse)(nil),         // 8: session_manager_service.InviteResponse
-	(*ControlResponse)(nil),        // 9: session_manager_service.ControlResponse
+	(*CreateSessionRequest)(nil),    // 0: session_manager_service.CreateSessionRequest
+	(*GetSessionRequest)(nil),       // 1: session_manager_service.GetSessionRequest
+	(*GetParticipantsRequest)(nil),  // 2: session_manager_service.GetParticipantsRequest
+	(*JoinSessionRequest)(nil),      // 3: session_manager_service.JoinSessionRequest
+	(*InviteRequest)(nil),           // 4: session_manager_service.InviteRequest
+	(*ControlRequest)(nil),          // 5: session_manager_service.ControlRequest
+	(*SessionResponse)(nil),         // 6: session_manager_service.SessionResponse
+	(*SetRecordingUrlRequest)(nil),  // 7: session_manager_service.SetRecordingUrlRequest
+	(*SetRecordingUrlResponse)(nil), // 8: session_manager_service.SetRecordingUrlResponse
+	(*ParticipantsResponse)(nil),    // 9: session_manager_service.ParticipantsResponse
+	(*InviteResponse)(nil),          // 10: session_manager_service.InviteResponse
+	(*ControlResponse)(nil),         // 11: session_manager_service.ControlResponse
 }
 var file_session_manager_proto_depIdxs = []int32{
-	0, // 0: session_manager_service.SessionManagerService.CreateSession:input_type -> session_manager_service.CreateSessionRequest
-	1, // 1: session_manager_service.SessionManagerService.GetSession:input_type -> session_manager_service.GetSessionRequest
-	2, // 2: session_manager_service.SessionManagerService.GetParticipants:input_type -> session_manager_service.GetParticipantsRequest
-	3, // 3: session_manager_service.SessionManagerService.JoinSession:input_type -> session_manager_service.JoinSessionRequest
-	4, // 4: session_manager_service.SessionManagerService.Invite:input_type -> session_manager_service.InviteRequest
-	5, // 5: session_manager_service.SessionManagerService.Control:input_type -> session_manager_service.ControlRequest
-	6, // 6: session_manager_service.SessionManagerService.CreateSession:output_type -> session_manager_service.SessionResponse
-	6, // 7: session_manager_service.SessionManagerService.GetSession:output_type -> session_manager_service.SessionResponse
-	7, // 8: session_manager_service.SessionManagerService.GetParticipants:output_type -> session_manager_service.ParticipantsResponse
-	6, // 9: session_manager_service.SessionManagerService.JoinSession:output_type -> session_manager_service.SessionResponse
-	8, // 10: session_manager_service.SessionManagerService.Invite:output_type -> session_manager_service.InviteResponse
-	9, // 11: session_manager_service.SessionManagerService.Control:output_type -> session_manager_service.ControlResponse
-	6, // [6:12] is the sub-list for method output_type
-	0, // [0:6] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0,  // 0: session_manager_service.SessionManagerService.CreateSession:input_type -> session_manager_service.CreateSessionRequest
+	1,  // 1: session_manager_service.SessionManagerService.GetSession:input_type -> session_manager_service.GetSessionRequest
+	2,  // 2: session_manager_service.SessionManagerService.GetParticipants:input_type -> session_manager_service.GetParticipantsRequest
+	3,  // 3: session_manager_service.SessionManagerService.JoinSession:input_type -> session_manager_service.JoinSessionRequest
+	4,  // 4: session_manager_service.SessionManagerService.Invite:input_type -> session_manager_service.InviteRequest
+	5,  // 5: session_manager_service.SessionManagerService.Control:input_type -> session_manager_service.ControlRequest
+	7,  // 6: session_manager_service.SessionManagerService.SetRecordingUrl:input_type -> session_manager_service.SetRecordingUrlRequest
+	6,  // 7: session_manager_service.SessionManagerService.CreateSession:output_type -> session_manager_service.SessionResponse
+	6,  // 8: session_manager_service.SessionManagerService.GetSession:output_type -> session_manager_service.SessionResponse
+	9,  // 9: session_manager_service.SessionManagerService.GetParticipants:output_type -> session_manager_service.ParticipantsResponse
+	6,  // 10: session_manager_service.SessionManagerService.JoinSession:output_type -> session_manager_service.SessionResponse
+	10, // 11: session_manager_service.SessionManagerService.Invite:output_type -> session_manager_service.InviteResponse
+	11, // 12: session_manager_service.SessionManagerService.Control:output_type -> session_manager_service.ControlResponse
+	8,  // 13: session_manager_service.SessionManagerService.SetRecordingUrl:output_type -> session_manager_service.SetRecordingUrlResponse
+	7,  // [7:14] is the sub-list for method output_type
+	0,  // [0:7] is the sub-list for method input_type
+	0,  // [0:0] is the sub-list for extension type_name
+	0,  // [0:0] is the sub-list for extension extendee
+	0,  // [0:0] is the sub-list for field type_name
 }
 
 func init() { file_session_manager_proto_init() }
@@ -617,7 +732,7 @@ func file_session_manager_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_session_manager_proto_rawDesc), len(file_session_manager_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   10,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

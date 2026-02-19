@@ -36,7 +36,7 @@ migrate: build
 seed: build
 	@cd $(BIN_DIR) && ./$(APP_NAME) seed
 
-reindex-search: build
+search: build
 	@cd $(BIN_DIR) && ./$(APP_NAME) reindex-search
 
 db-init: migrate seed

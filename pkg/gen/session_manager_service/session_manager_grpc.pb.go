@@ -25,6 +25,7 @@ const (
 	SessionManagerService_JoinSession_FullMethodName     = "/session_manager_service.SessionManagerService/JoinSession"
 	SessionManagerService_Invite_FullMethodName          = "/session_manager_service.SessionManagerService/Invite"
 	SessionManagerService_Control_FullMethodName         = "/session_manager_service.SessionManagerService/Control"
+	SessionManagerService_SetRecordingUrl_FullMethodName = "/session_manager_service.SessionManagerService/SetRecordingUrl"
 )
 
 // SessionManagerServiceClient is the client API for SessionManagerService service.
@@ -37,6 +38,7 @@ type SessionManagerServiceClient interface {
 	JoinSession(ctx context.Context, in *JoinSessionRequest, opts ...grpc.CallOption) (*SessionResponse, error)
 	Invite(ctx context.Context, in *InviteRequest, opts ...grpc.CallOption) (*InviteResponse, error)
 	Control(ctx context.Context, in *ControlRequest, opts ...grpc.CallOption) (*ControlResponse, error)
+	SetRecordingUrl(ctx context.Context, in *SetRecordingUrlRequest, opts ...grpc.CallOption) (*SetRecordingUrlResponse, error)
 }
 
 type sessionManagerServiceClient struct {
@@ -107,6 +109,16 @@ func (c *sessionManagerServiceClient) Control(ctx context.Context, in *ControlRe
 	return out, nil
 }
 
+func (c *sessionManagerServiceClient) SetRecordingUrl(ctx context.Context, in *SetRecordingUrlRequest, opts ...grpc.CallOption) (*SetRecordingUrlResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SetRecordingUrlResponse)
+	err := c.cc.Invoke(ctx, SessionManagerService_SetRecordingUrl_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SessionManagerServiceServer is the server API for SessionManagerService service.
 // All implementations must embed UnimplementedSessionManagerServiceServer
 // for forward compatibility.
@@ -117,6 +129,7 @@ type SessionManagerServiceServer interface {
 	JoinSession(context.Context, *JoinSessionRequest) (*SessionResponse, error)
 	Invite(context.Context, *InviteRequest) (*InviteResponse, error)
 	Control(context.Context, *ControlRequest) (*ControlResponse, error)
+	SetRecordingUrl(context.Context, *SetRecordingUrlRequest) (*SetRecordingUrlResponse, error)
 	mustEmbedUnimplementedSessionManagerServiceServer()
 }
 
@@ -144,6 +157,9 @@ func (UnimplementedSessionManagerServiceServer) Invite(context.Context, *InviteR
 }
 func (UnimplementedSessionManagerServiceServer) Control(context.Context, *ControlRequest) (*ControlResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Control not implemented")
+}
+func (UnimplementedSessionManagerServiceServer) SetRecordingUrl(context.Context, *SetRecordingUrlRequest) (*SetRecordingUrlResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SetRecordingUrl not implemented")
 }
 func (UnimplementedSessionManagerServiceServer) mustEmbedUnimplementedSessionManagerServiceServer() {}
 func (UnimplementedSessionManagerServiceServer) testEmbeddedByValue()                               {}
@@ -274,6 +290,24 @@ func _SessionManagerService_Control_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SessionManagerService_SetRecordingUrl_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetRecordingUrlRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SessionManagerServiceServer).SetRecordingUrl(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SessionManagerService_SetRecordingUrl_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SessionManagerServiceServer).SetRecordingUrl(ctx, req.(*SetRecordingUrlRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SessionManagerService_ServiceDesc is the grpc.ServiceDesc for SessionManagerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +338,10 @@ var SessionManagerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Control",
 			Handler:    _SessionManagerService_Control_Handler,
+		},
+		{
+			MethodName: "SetRecordingUrl",
+			Handler:    _SessionManagerService_SetRecordingUrl_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

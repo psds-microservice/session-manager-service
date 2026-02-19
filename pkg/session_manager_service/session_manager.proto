@@ -16,6 +16,8 @@ service SessionManagerService {
     option (google.api.http) = { post: "/session/{id}/invite"; body: "*" }; }
   rpc Control (ControlRequest) returns (ControlResponse) {
     option (google.api.http) = { post: "/session/{id}/control"; body: "*" }; }
+  rpc SetRecordingUrl (SetRecordingUrlRequest) returns (SetRecordingUrlResponse) {
+    option (google.api.http) = { put: "/session/recording"; body: "*" }; }
 }
 
 message CreateSessionRequest { 
@@ -27,7 +29,9 @@ message GetParticipantsRequest { string id = 1; }
 message JoinSessionRequest { string session_id = 1; string pin = 2; string user_id = 3; }
 message InviteRequest { string id = 1; string operator_id = 2; }
 message ControlRequest { string id = 1; string action = 2; }
-message SessionResponse { string id = 1; string status = 2; string pin = 3; }
+message SessionResponse { string id = 1; string status = 2; string pin = 3; string recording_url = 4; }
+message SetRecordingUrlRequest { string stream_session_id = 1; string recording_url = 2; }
+message SetRecordingUrlResponse { bool ok = 1; }
 message ParticipantsResponse { repeated string participant_ids = 1; }
 message InviteResponse { bool ok = 1; }
 message ControlResponse { bool ok = 1; }

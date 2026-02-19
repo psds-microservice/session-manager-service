@@ -80,6 +80,38 @@
         ]
       }
     },
+    "/session/recording": {
+      "put": {
+        "operationId": "SessionManagerService_SetRecordingUrl",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceSetRecordingUrlResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/session_manager_serviceSetRecordingUrlRequest"
+            }
+          }
+        ],
+        "tags": [
+          "SessionManagerService"
+        ]
+      }
+    },
     "/session/{id}": {
       "get": {
         "operationId": "SessionManagerService_GetSession",
@@ -327,6 +359,28 @@
         },
         "pin": {
           "type": "string"
+        },
+        "recordingUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "session_manager_serviceSetRecordingUrlRequest": {
+      "type": "object",
+      "properties": {
+        "streamSessionId": {
+          "type": "string"
+        },
+        "recordingUrl": {
+          "type": "string"
+        }
+      }
+    },
+    "session_manager_serviceSetRecordingUrlResponse": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
         }
       }
     }

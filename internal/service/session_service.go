@@ -20,6 +20,7 @@ type SessionServicer interface {
 	JoinBySessionID(sessionID, operatorID uuid.UUID) (*model.ConsultationSession, error)
 	Invite(sessionID, operatorID uuid.UUID) error
 	Control(sessionID uuid.UUID, leadOperatorID *uuid.UUID, status string) error
+	SetRecordingUrlByStreamSessionID(streamSessionID uuid.UUID, recordingURL string) error
 }
 
 const pinDigits = "0123456789"
@@ -157,6 +158,18 @@ func (s *SessionService) Control(sessionID uuid.UUID, leadOperatorID *uuid.UUID,
 		return nil
 	}
 	return s.db.Model(ses).Updates(upd).Error
+}
+
+// SetRecordingUrlByStreamSessionID sets recording_url for the consultation session with the given stream_session_id.
+func (s *SessionService) SetRecordingUrlByStreamSessionID(streamSessionID uuid.UUID, recordingURL string) error {
+	res := s.db.Model(&model.ConsultationSession{}).Where("stream_session_id = ?", streamSessionID).Update("recording_url", recordingURL)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return errs.ErrSessionNotFound
+	}
+	return nil
 }
 
 func (s *SessionService) GetParticipants(sessionID uuid.UUID) ([]model.SessionParticipant, error) {

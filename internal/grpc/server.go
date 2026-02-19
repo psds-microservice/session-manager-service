@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/psds-microservice/session-manager-service/internal/errs"
@@ -53,9 +54,10 @@ func toProtoSession(ses *model.ConsultationSession) *session_manager_service.Ses
 		return nil
 	}
 	return &session_manager_service.SessionResponse{
-		Id:     ses.ID.String(),
-		Status: ses.Status,
-		Pin:    ses.PIN,
+		Id:           ses.ID.String(),
+		Status:       ses.Status,
+		Pin:          ses.PIN,
+		RecordingUrl: ses.RecordingURL,
 	}
 }
 
@@ -135,19 +137,34 @@ func (s *Server) JoinSession(ctx context.Context, req *session_manager_service.J
 	var ses *model.ConsultationSession
 	if req.GetPin() != "" {
 		ses, err = s.Session.JoinByPIN(req.GetPin(), userID)
-	} else if req.GetSessionId() != "" {
-		sessionID, err := uuid.Parse(req.GetSessionId())
 		if err != nil {
+			return nil, s.mapError(err)
+		}
+		if ses == nil {
+			return nil, status.Error(codes.NotFound, "session not found")
+		}
+	} else if req.GetSessionId() != "" {
+		sessionID, parseErr := uuid.Parse(req.GetSessionId())
+		if parseErr != nil {
 			return nil, status.Error(codes.InvalidArgument, "invalid session_id")
 		}
 		ses, err = s.Session.JoinBySessionID(sessionID, userID)
-	}
-	if err != nil {
-		return nil, s.mapError(err)
+		if err != nil {
+			return nil, s.mapError(err)
+		}
+		if ses == nil {
+			return nil, status.Error(codes.NotFound, "session not found")
+		}
+	} else {
+		// Это не должно произойти из-за проверки выше, но на всякий случай
+		return nil, status.Error(codes.InvalidArgument, "session_id or pin required")
 	}
 	// Индексация теперь через Kafka consumer в search-service worker
+	// Fire-and-forget: событие должно уйти даже при отмене запроса, но с таймаутом
 	if s.Producer != nil {
-		go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", ses.ID, map[string]interface{}{
+		eventCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		go s.Producer.ProduceSessionEvent(eventCtx, "operator_joined", ses.ID, map[string]interface{}{
 			"user_id":   userID.String(),
 			"client_id": ses.ClientID.String(),
 			"pin":       ses.PIN,
@@ -170,10 +187,13 @@ func (s *Server) Invite(ctx context.Context, req *session_manager_service.Invite
 		return nil, s.mapError(err)
 	}
 	// Индексация теперь через Kafka consumer в search-service worker
+	// Fire-and-forget: событие должно уйти даже при отмене запроса, но с таймаутом
 	if s.Producer != nil {
 		// Получаем сессию для отправки полных данных
 		if ses, err := s.Session.GetByID(sessionID); err == nil && ses != nil {
-			go s.Producer.ProduceSessionEvent(context.Background(), "operator_joined", sessionID, map[string]interface{}{
+			eventCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			go s.Producer.ProduceSessionEvent(eventCtx, "operator_joined", sessionID, map[string]interface{}{
 				"operator_id": operatorID.String(),
 				"client_id":   ses.ClientID.String(),
 				"pin":         ses.PIN,
@@ -201,6 +221,7 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 		return nil, s.mapError(err)
 	}
 	// Индексация теперь через Kafka consumer в search-service worker
+	// Fire-and-forget: событие должно уйти даже при отмене запроса, но с таймаутом
 	if s.Producer != nil {
 		// Получаем сессию для отправки полных данных
 		if ses, err := s.Session.GetByID(sessionID); err == nil && ses != nil {
@@ -208,7 +229,9 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 			if statusStr == "finished" {
 				eventType = "session.ended"
 			}
-			go s.Producer.ProduceSessionEvent(context.Background(), eventType, sessionID, map[string]interface{}{
+			eventCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			go s.Producer.ProduceSessionEvent(eventCtx, eventType, sessionID, map[string]interface{}{
 				"client_id": ses.ClientID.String(),
 				"pin":       ses.PIN,
 				"status":    ses.Status, // Обновлённый статус
@@ -216,4 +239,18 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 		}
 	}
 	return &session_manager_service.ControlResponse{Ok: true}, nil
+}
+
+func (s *Server) SetRecordingUrl(ctx context.Context, req *session_manager_service.SetRecordingUrlRequest) (*session_manager_service.SetRecordingUrlResponse, error) {
+	if req.GetStreamSessionId() == "" {
+		return nil, status.Error(codes.InvalidArgument, "stream_session_id is required")
+	}
+	streamSessionID, err := uuid.Parse(req.GetStreamSessionId())
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid stream_session_id")
+	}
+	if err := s.Session.SetRecordingUrlByStreamSessionID(streamSessionID, req.GetRecordingUrl()); err != nil {
+		return nil, s.mapError(err)
+	}
+	return &session_manager_service.SetRecordingUrlResponse{Ok: true}, nil
 }

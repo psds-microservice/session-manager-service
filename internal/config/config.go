@@ -15,7 +15,7 @@ type Config struct {
 	GRPCPort string
 	LogLevel string
 
-	SearchServiceURL  string   // опционально: URL search-service для индексации сессий (например http://localhost:8096)
+	SearchServiceURL  string   // опционально: URL search-service для индексации сессий (например http://localhost:8099)
 	KafkaBrokers      []string // опционально: брокеры Kafka для событий сессий (например localhost:9092)
 	KafkaTopicSession string   // топик для событий сессий (по умолчанию psds.session.events)
 

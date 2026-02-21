@@ -16,6 +16,7 @@ type SessionServicer interface {
 	Create(clientID uuid.UUID, streamSessionID *uuid.UUID) (*model.ConsultationSession, error)
 	GetByID(id uuid.UUID) (*model.ConsultationSession, error)
 	GetParticipants(sessionID uuid.UUID) ([]model.SessionParticipant, error)
+	IsParticipant(sessionID, userID uuid.UUID) (bool, error)
 	JoinByPIN(pin string, operatorID uuid.UUID) (*model.ConsultationSession, error)
 	JoinBySessionID(sessionID, operatorID uuid.UUID) (*model.ConsultationSession, error)
 	Invite(sessionID, operatorID uuid.UUID) error
@@ -178,4 +179,20 @@ func (s *SessionService) GetParticipants(sessionID uuid.UUID) ([]model.SessionPa
 		return nil, err
 	}
 	return list, nil
+}
+
+// IsParticipant returns true if userID is the session client or a session operator.
+func (s *SessionService) IsParticipant(sessionID, userID uuid.UUID) (bool, error) {
+	ses, err := s.GetByID(sessionID)
+	if err != nil {
+		return false, err
+	}
+	if ses.ClientID == userID {
+		return true, nil
+	}
+	var count int64
+	if err := s.db.Model(&model.SessionParticipant{}).Where("session_id = ? AND user_id = ?", sessionID, userID).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

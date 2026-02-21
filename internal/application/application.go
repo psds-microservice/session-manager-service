@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -90,7 +91,18 @@ func NewAPI(cfg *config.Config) (*API, error) {
 	session_manager_service.RegisterSessionManagerServiceServer(grpcSrv, grpcImpl)
 	reflection.Register(grpcSrv)
 
-	gatewayMux := runtime.NewServeMux()
+	gatewayMux := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+			keyLower := strings.ToLower(key)
+			if keyLower == "x-caller-id" {
+				return "x-caller-id", true
+			}
+			if strings.HasPrefix(keyLower, "grpc-metadata-") {
+				return keyLower[len("grpc-metadata-"):], true
+			}
+			return "", false
+		}),
+	)
 	if err := session_manager_service.RegisterSessionManagerServiceHandlerServer(context.Background(), gatewayMux, grpcImpl); err != nil {
 		return nil, fmt.Errorf("register grpc-gateway: %w", err)
 	}

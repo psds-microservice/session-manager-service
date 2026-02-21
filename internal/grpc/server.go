@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,7 @@ import (
 	"github.com/psds-microservice/session-manager-service/internal/service"
 	"github.com/psds-microservice/session-manager-service/pkg/gen/session_manager_service"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -33,6 +35,19 @@ type Server struct {
 // NewServer создаёт gRPC-сервер с внедрёнными сервисами
 func NewServer(deps Deps) *Server {
 	return &Server{Deps: deps}
+}
+
+// getMetadata returns the first value for key from incoming gRPC metadata (case-insensitive key).
+func getMetadata(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	keyLower := strings.ToLower(key)
+	if v := md.Get(keyLower); len(v) > 0 {
+		return strings.TrimSpace(v[0])
+	}
+	return ""
 }
 
 func (s *Server) mapError(err error) error {
@@ -209,12 +224,26 @@ func (s *Server) Control(ctx context.Context, req *session_manager_service.Contr
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid id")
 	}
-	// В proto ControlRequest имеет только id и action
-	// Используем action как status (active, finished)
-	// Если action пустой и нет других полей, возвращаем ошибку валидации
+	// Validate action before permission check so missing action returns 400.
 	statusStr := req.GetAction()
 	if statusStr == "" {
 		return nil, status.Error(codes.InvalidArgument, "action is required")
+	}
+	// Permission check: caller must be a session participant (client or operator).
+	callerIDStr := getMetadata(ctx, "x-caller-id")
+	if callerIDStr == "" {
+		return nil, status.Error(codes.PermissionDenied, "caller identity required (x-caller-id)")
+	}
+	callerID, err := uuid.Parse(callerIDStr)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid x-caller-id")
+	}
+	ok, err := s.Session.IsParticipant(sessionID, callerID)
+	if err != nil {
+		return nil, s.mapError(err)
+	}
+	if !ok {
+		return nil, status.Error(codes.PermissionDenied, "caller is not a participant of this session")
 	}
 	var leadOperatorID *uuid.UUID
 	if err := s.Session.Control(sessionID, leadOperatorID, statusStr); err != nil {
